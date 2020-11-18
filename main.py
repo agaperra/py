@@ -22,9 +22,9 @@ def binary_pict(pic: str):
 def export(binary):
     # print(binary)
     image = BytesIO(dec64(binary))  # <_io.BytesIO object at 0x0000000002966708>
-    # print(image)
-    # pillow = Image.open(image)
-    # x = pillow.show()
+    print(image)
+    pillow = Image.open(image)
+    x = pillow.show()
 
 
 # преобразование в черно-белое изображение
@@ -228,8 +228,10 @@ createTable("test.db", "data_pict", "id integer primary key autoincrement not nu
 createTable("test.db", "classes", " id    INTEGER     PRIMARY KEY AUTOINCREMENT NOT NULL, class VARCHAR (1) NOT NULL")
 createTable("test.db", "pict_classes",
             "id_pict  INTEGER REFERENCES data_pict (id) NOT NULL, id_class INTEGER REFERENCES classes (id) NOT NULL")
+#
+# rows()
+# classInsert()
+# full()
 
-rows()
-classInsert()
-full()
+
 

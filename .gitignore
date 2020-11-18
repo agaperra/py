@@ -1,2 +1,6 @@
 .idea/
 venv/
+/testing/
+/testing_txt/
+/training_img/
+/training_txt/
