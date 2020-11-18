@@ -5,21 +5,24 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 import os
+import sqlite3
 import time
 
 
 # кодирование
 def binary_pict(pic: str) -> str:
     with open(pic, 'rb') as f:
-        binar = enc64(f.read())  # b'iVBORw0KGgoAAAANSUhEUgAAAJE
-    return binar
+        binarr = enc64(f.read())  # b'iVBORw0KGgoAAAANSUhEUgAAAJE
+    return binarr
 
 
 # декодирование
 def export(binary):
+    # print(binary)
     image = BytesIO(dec64(binary))  # <_io.BytesIO object at 0x0000000002966708>
-    pillow = Image.open(image)
-    x = pillow.show()
+    #print(image)
+    #pillow = Image.open(image)
+    #x = pillow.show()
 
 
 # преобразование в черно-белое изображение
@@ -71,10 +74,62 @@ def files(path: object):
             yield packet
 
 
-# pict = '000KfhLkJ2G.png'
-# export(binary_pict(pict))
-# black_white_rerange(r"instax_round.jpg")
+def count_substitutions(s1, s2):
+    return sum(x != y for (x, y) in zip(s1, s2))
+
+
+def createTable(db: str, table: str, column: str):
+    connect = sqlite3.connect(db)
+    curs = connect.cursor()
+    curs.execute(str("""CREATE TABLE if not exists """ + table + """ (""" + column + """)"""))
+    connect.commit()
+
+
+def dropTable(db: str, table: str):
+    connect = sqlite3.connect(db)
+    curs = connect.cursor()
+    curs.execute(str("""drop table if exists """ + table))
+    connect.commit()
+
+
+def insert(db: str, table: str, col: str, values: str):
+    connect = sqlite3.connect(db)
+    curs = connect.cursor()
+    string_db = """INSERT INTO """ + table + """ (""" + col + """) VALUES (""" + values + """);"""
+    curs.execute(string_db)
+    connect.commit()
+
+
+def select(db: str, table: str, col: str, values: str) -> str:
+    connect = sqlite3.connect(db)
+    curs = connect.cursor()
+    a = curs.execute("""SELECT """ + col + """ from """ + table + """ where """ + values + """;""").fetchall()
+    connect.commit()
+    return a
+
+
+def createByte(a: str):
+    a = a[:0] + a[9:]
+    a = a[:len(a) - 7] + a[len(a):]
+    a = a[:len(a) - 2] + a[len(a):]
+    a = a.encode()
+    return a
+
+
+# --------------------------------------------------------------------------------------------------------
+
+
 start_time = time.time()
-for pack in files('.\\training'):
-    one_zero_paint('training\\'+pack)
+createTable("test.db", "data_pict", "id integer primary key autoincrement not null, code text not null")
+
+for pack in files('.\\tst'):
+    pict = 'tst\\' + pack
+    picture = binary_pict(pict)
+    temp = '"""' + "'" + str(picture) + "'" + '"""'
+    insert("test.db", "data_pict", "code", temp)
+    a = str(select("test.db", "data_pict", "code", "id=(select id from data_pict where code="+temp+")"))
+    a = createByte(a)
+    export(a)
 print("--- %s seconds ---" % (time.time() - start_time))
+
+
