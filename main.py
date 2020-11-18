@@ -118,8 +118,8 @@ def createByte(a: str):
 
 
 def full():
-    for pack in files('.\\testing_img'):
-        pict = 'testing_img\\' + pack
+    for pack in files('testing'):
+        pict = 'testing\\' + pack
         picture = binary_pict(pict)
         temp = '"""' + "'" + str(picture) + "'" + '"""'
         if (len(pack) == 13):
@@ -136,8 +136,8 @@ def full():
 
 
 def rows():
-    for pack in files('.\\testing_img'):
-        pict = 'testing_img\\' + pack
+    for pack in files('testing'):
+        pict = 'testing\\' + pack
         picture = binary_pict(pict)
         temp = '"""' + "'" + str(picture) + "'" + '"""'
         insert("test.db", "data_pict", "code", temp)
@@ -232,3 +232,4 @@ createTable("test.db", "pict_classes",
 rows()
 classInsert()
 full()
+
