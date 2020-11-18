@@ -232,3 +232,4 @@ createTable("test.db", "pict_classes",
 rows()
 classInsert()
 full()
+
