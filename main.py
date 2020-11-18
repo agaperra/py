@@ -3,14 +3,16 @@ from base64 import b64decode as dec64
 from io import BytesIO
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 import os
 import sqlite3
 import time
+import pandas as pd
+import xlrd
 
 
 # кодирование
-def binary_pict(pic: str) -> str:
+def binary_pict(pic: str):
     with open(pic, 'rb') as f:
         binarr = enc64(f.read())  # b'iVBORw0KGgoAAAANSUhEUgAAAJE
     return binarr
@@ -20,9 +22,9 @@ def binary_pict(pic: str) -> str:
 def export(binary):
     # print(binary)
     image = BytesIO(dec64(binary))  # <_io.BytesIO object at 0x0000000002966708>
-    #print(image)
-    #pillow = Image.open(image)
-    #x = pillow.show()
+    # print(image)
+    # pillow = Image.open(image)
+    # x = pillow.show()
 
 
 # преобразование в черно-белое изображение
@@ -100,36 +102,129 @@ def insert(db: str, table: str, col: str, values: str):
     connect.commit()
 
 
-def select(db: str, table: str, col: str, values: str) -> str:
+def select(db: str, table: str, col: str, values: str):
     connect = sqlite3.connect(db)
     curs = connect.cursor()
-    a = curs.execute("""SELECT """ + col + """ from """ + table + """ where """ + values + """;""").fetchall()
+    a = curs.execute("""SELECT """ + col + """ from """ + table + """ where """ + values + """;""").fetchone()
     connect.commit()
     return a
 
 
 def createByte(a: str):
-    a = a[:0] + a[9:]
-    a = a[:len(a) - 7] + a[len(a):]
-    a = a[:len(a) - 2] + a[len(a):]
+    a = a[:0] + a[4:]
+    a = a[:len(a) - 3] + a[len(a):]
     a = a.encode()
     return a
 
+def full():
+    for pack in files('.\\testing_img'):
+        pict = 'testing_img\\' + pack
+        picture = binary_pict(pict)
+        temp = '"""' + "'" + str(picture) + "'" + '"""'
+        if (len(pack) == 13):
+            pack = pack[:0] + pack[5:]
+            pack = pack[:len(pack) - 7] + pack[len(pack):]
+        if (len(pack) == 17):
+            pack = pack[:0] + pack[5:]
+            pack = pack[:len(pack) - 11] + pack[len(pack):]
+        class_id = select("test.db", "classes", "id", "class=" + "'" + pack + "'")[0]
+        code_id = select("test.db", "data_pict", "id", "code=" + temp)[0]
+        #print(str(class_id) + ", " + str(code_id))
+        tmp = str(code_id) + "," + str(class_id)
+        insert("test.db", "pict_classes", "id_pict, id_class", tmp)
 
+
+def rows():
+    for pack in files('.\\testing_img'):
+        pict = 'testing_img\\' + pack
+        picture = binary_pict(pict)
+        temp = '"""' + "'" + str(picture) + "'" + '"""'
+        insert("test.db", "data_pict", "code", temp)
+
+def classInsert():
+    connect = sqlite3.connect("test.db")
+    curs = connect.cursor()
+    classes=[('0'),
+            ('1'),
+            ('2'),
+            ('3'),
+            ('4'),
+            ('5'),
+            ('6'),
+            ('7'),
+            ('8'),
+            ('9'),
+            ('а'),
+            ('б'),
+            ('в'),
+            ('г'),
+            ('д'),
+            ('е'),
+            ('ж'),
+            ('з'),
+            ('и'),
+            ('й'),
+            ('к'),
+            ('л'),
+            ('м'),
+            ('н'),
+            ('о'),
+            ('п'),
+            ('р'),
+            ('с'),
+            ('т'),
+            ('у'),
+            ('ф'),
+            ('х'),
+            ('ц'),
+            ('ч'),
+            ('ш'),
+            ('щ'),
+            ('ъ'),
+            ('ы'),
+            ('ь'),
+            ('э'),
+            ('ю'),
+            ('я'),
+            ('А'),
+            ('Б'),
+            ('В'),
+            ('Г'),
+            ('Д'),
+            ('Е'),
+            ('Ж'),
+            ('З'),
+            ('И'),
+            ('Й'),
+            ('К'),
+            ('Л'),
+            ('М'),
+            ('Н'),
+            ('О'),
+            ('П'),
+            ('Р'),
+            ('С'),
+            ('Т'),
+            ('У'),
+            ('Ф'),
+            ('Х'),
+            ('Ц'),
+            ('Ч'),
+            ('Ш'),
+            ('Щ'),
+            ('Э'),
+            ('Ю'),
+            ('Я')]
+    curs.executemany("INSERT INTO classes (class) VALUES (?)", classes)
+    connect.commit()
 # --------------------------------------------------------------------------------------------------------
 
 
-start_time = time.time()
 createTable("test.db", "data_pict", "id integer primary key autoincrement not null, code text not null")
+createTable("test.db", "classes", " id    INTEGER     PRIMARY KEY AUTOINCREMENT NOT NULL, class VARCHAR (1) NOT NULL")
+createTable("test.db", "pict_classes",
+            "id_pict  INTEGER REFERENCES data_pict (id) NOT NULL, id_class INTEGER REFERENCES classes (id) NOT NULL")
 
-for pack in files('.\\tst'):
-    pict = 'tst\\' + pack
-    picture = binary_pict(pict)
-    temp = '"""' + "'" + str(picture) + "'" + '"""'
-    insert("test.db", "data_pict", "code", temp)
-    a = str(select("test.db", "data_pict", "code", "id=(select id from data_pict where code="+temp+")"))
-    a = createByte(a)
-    export(a)
-print("--- %s seconds ---" % (time.time() - start_time))
-
-
+rows()
+classInsert()
+full()
