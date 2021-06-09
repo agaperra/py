@@ -196,3 +196,9 @@ def create_byte(a: str):
 # rows()
 # classInsert()
 # full()
+
+
+# преобразование всех чисел во фрейме в тип float
+# cols = dataframe.select_dtypes(exclude=['float']).columns
+# dataframe[cols] = dataframe[cols].apply(pd.to_numeric, downcast='float', errors='coerce')
+# print(dataframe)
